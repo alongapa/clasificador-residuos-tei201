@@ -1,0 +1,17 @@
+Item,Componente,Modelo / Especificacion,Cantidad,Costo unitario (CLP),Costo total (CLP),Proveedor,Nota de compra,Justificacion tecnica
+1,Microcontrolador principal,ESP32 DevKit V1 (DOIT) 30 pines - WiFi/BT - 240 MHz,1,8490,8490,MercadoLibre,,Suficientes GPIO para los cuatro perifericos; dos UART libres; WiFi disponible para dashboard y notificaciones
+2,Camara con inferencia,ESP32-CAM AI-Thinker con OV2640 y 4 MB PSRAM,1,17851,17851,MercadoLibre,,La PSRAM es requisito para correr el modelo MobileNetV2 en la placa; integra camara y microcontrolador en un solo modulo
+3,Shield programador,ESP32-CAM-MB (USB a serial),1,0,0,MercadoLibre,Incluido en el precio del item 2,La ESP32-CAM no trae puerto USB; el shield gestiona el modo de descarga automaticamente
+4,Sensor de distancia,"HC-SR04 ultrasonico - alimentado a 3,3 V",1,5558,5558,MercadoLibre,,"Medicion directa de altura de acumulacion. Alimentado a 3,3 V el ECHO entra directo al GPIO sin divisor, a costa de reducir el alcance de ~4 m a ~1 m, suficiente para medir a 20-60 cm"
+5,Actuador visual,LED RGB 5 mm catodo comun,1,140,140,MercadoLibre,Comprado en pack de 25 unidades por $3.500,"Indicacion de estado legible sin conectarse al dashboard: verde holgado, ambar a la mitad, rojo recolectar"
+6,Resistencias,220 ohm 1/2 W 5%,3,580,1740,MercadoLibre,Comprado en pack de 5 unidades por $2.900,Limitacion de corriente en los tres canales del LED RGB
+7,Entrada manual,Pulsador tactil 6x6 mm - 2 patas,1,3000,3000,MercadoLibre,Verificar si vino en pack,Calibracion del cero en terreno y confirmacion manual con la camara durante la demostracion
+8,Almacenamiento,Modulo microSD SPI HW-125,1,3490,3490,MercadoLibre,,"Registro local garantizado, independiente de la conectividad, para reconstruir la curva de acumulacion"
+9,Tarjeta de memoria,microSD Maxell formateada FAT32,1,7990,7990,MercadoLibre,,Soporte del registro continuo: una fila cada 5 segundos
+10,Soporte de montaje,Protoboard 830 puntos - 165 x 55 mm medidos,1,7490,7490,MercadoLibre,,"Prototipado sin soldadura. Rieles de alimentacion partidos al medio, considerado en el diseno del cableado"
+11,Cableado,Jumpers macho-hembra 20 cm,24,,3490,MercadoLibre,Comprado como set; se usa el set completo,Interconexion entre placas y perifericos
+12,Cable de datos,Cable micro-USB con lineas de datos,1,0,0,-,"Ya disponible, no se compro para el proyecto",Programacion y alimentacion de ambas placas. Un cable de solo carga no establece el puerto serie
+13,Material de impresion,Filamento PLA / PETG,1,0,0,DEC - Universidad Adolfo Ibanez,Impresion sin costo en el servicio del DEC de la universidad,Encapsulado de 8 piezas. PETG recomendado para Lid_B por la lengueta flexible del boton
+
+,TOTAL materiales utilizados,,,,59239,,Sin los 3 items por confirmar,
+,TOTAL desembolso real,,,,63759,,Incluye packs completos de LED y resistencias,
