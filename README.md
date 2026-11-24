@@ -131,8 +131,9 @@ tres situaciones:
 2. **Reconfirmación cada 2 minutos**, mientras haya algo medido. Cubre el caso
    de una lectura que quedó pegada en un objeto que ya no está: si el auto se
    fue, la cámara ve la zona vacía y la altura validada baja a cero.
-3. **Toque corto del pulsador**, para verificar a demanda. Solo con el
-   gabinete abierto; cerrado no hay acceso al pulsador.
+3. **Toque corto del pulsador**, para verificar a demanda. Solo con la placa
+   accesible en banco: en el prototipo armado la lengüeta de `Lid_B` no
+   acciona el táctil.
 
 Una **bajada** de nivel no necesita confirmación. Si había residuos y ahora hay
 menos, alguien recolectó o el material se movió; la altura validada sigue a la
@@ -461,9 +462,9 @@ el monitor serial al arrancar.
 ### Calibración remota
 
 El dashboard incluye un botón **Calibrar** que fija el cero sin tocar el
-dispositivo. No es una comodidad: con el equipo montado dentro del gabinete
-cerrado no hay acceso físico ni al pulsador ni al pin D4, así que es la única
-vía para calibrar en terreno.
+dispositivo. No es una comodidad: con el equipo montado el pulsador no es
+accionable —la lengüeta impresa de `Lid_B` no transmite la pulsación— y tampoco
+hay acceso al pin D4, así que es la única vía para calibrar en terreno.
 
 Funciona en dos pasos — el primer clic arma el botón y el segundo confirma, con
 cancelación automática a los 8 segundos — porque calibrar con material en la
