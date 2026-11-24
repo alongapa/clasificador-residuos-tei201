@@ -83,18 +83,18 @@ La cámara no clasifica para decidir en qué contenedor va cada cosa. Su funció
 es **confirmar que la medición del ultrasónico corresponde a residuos**, de
 cualquier material.
 
-El modelo distingue cuatro clases: `carton`, `metal`, `plastico` y `vacio`. Para
-la validación solo importa la frontera:
+El modelo distingue tres clases: `residuo`, `otro` y `vacio`. Para la validación
+solo importa la frontera:
 
 **La medición cuenta por defecto. La cámara solo puede objetar, y solo cuando
 está segura.**
 
 | Lo que ve la cámara | Decisión |
 |---|---|
-| `vacio` con confianza ≥ 0,70 | **Objetada.** La zona está despejada: el ultrasónico midió un eco falso. La altura validada baja a cero. |
-| `otro` con confianza ≥ 0,70 | **Objetada.** Hay un objeto sólido, pero no es un residuo: una mano, un animal, un vehículo. |
-| `residuo` con confianza ≥ 0,70 | **Confirmada.** La altura medida pasa a ser validada. |
-| Confianza < 0,70, o sin respuesta en 3 s | **Sin objeción.** La medición del ultrasónico cuenta igual. |
+| `vacio` con confianza ≥ 0,80 | **Objetada.** La zona está despejada: el ultrasónico midió un eco falso. La altura validada baja a cero. |
+| `otro` con confianza ≥ 0,80 | **Objetada.** Hay un objeto sólido, pero no es un residuo: una mano, un animal, un vehículo. |
+| `residuo` con confianza ≥ 0,80 | **Confirmada.** La altura medida pasa a ser validada. |
+| Confianza < 0,80, o sin respuesta en 3 s | **Sin objeción.** La medición del ultrasónico cuenta igual. |
 
 ### Por qué la medición cuenta por defecto
 
@@ -196,7 +196,7 @@ argumento, no una medición**: se verifica en P9.
 
 Si la verificación falla, el plan de contingencia está acotado y es barato: un
 modelo **binario** `vacio` / `residuo`, fotografiado desde la posición real de
-montaje. Son dos clases en vez de cuatro, y es el único discriminante que el
+montaje. Son dos clases en vez de tres, y es el único discriminante que el
 sistema necesita.
 
 ### Otras limitaciones
@@ -364,11 +364,10 @@ segundo y medio:
 ```
 Predictions (DSP: 9 ms., Classification: 1206 ms., Anomaly: 0 ms.):
 Predictions:
-  carton: 0.01172
-  metal: 0.05859
-  plastico: 0.71875
-  vacio: 0.21094
--> DevKit: plastico,0.719
+  otro: 0.01563
+  residuo: 0.97266
+  vacio: 0.01172
+-> DevKit: residuo,0.973
 ```
 
 ---
@@ -412,9 +411,9 @@ Cada muestra agrega una fila a `/registro.csv` en la microSD:
 
 ```csv
 tiempo_ms,hora,distancia_mm,altura_medida_mm,altura_validada_mm,llenado_pct,volumen_cm3,validacion,material,confianza
-45200,2026-11-03 14:32:05,238,12,0,0,0.0,-1,-,0.000
-50210,2026-11-03 14:32:10,196,54,54,36,72.9,1,carton,0.812
-55220,2026-11-03 14:32:15,120,130,54,36,72.9,0,-,0.000
+638655,2026-11-20 16:00:41,544,4,0,0,0.0,sin_confirmar,-,0.000
+2101576,2026-11-20 16:25:04,544,4,4,2,42.4,confirmada,residuo,0.973
+2106596,2026-11-20 16:25:09,548,0,4,2,42.4,confirmada,residuo,0.973
 ```
 
 | Campo | Descripción |
@@ -426,14 +425,22 @@ tiempo_ms,hora,distancia_mm,altura_medida_mm,altura_validada_mm,llenado_pct,volu
 | `altura_validada_mm` | Altura confirmada como residuos. Es la que usan los indicadores |
 | `llenado_pct` | Porcentaje de la altura validada respecto a la capacidad |
 | `volumen_cm3` | Estimación bajo los supuestos declarados |
-| `validacion` | `1` confirmada · `0` rechazada por la cámara · `-1` sin evaluar |
+| `validacion` | `confirmada` · `objetada` por la cámara · `sin_confirmar` si no se consultó o la cámara no tuvo certeza |
 | `material` | Clase de la última confirmación, o `-` |
 | `confianza` | Confianza de esa clase, 0 a 1 |
 
-La tercera fila del ejemplo es el caso que motivó todo el diseño: el ultrasónico
-midió 130 mm, la cámara miró y vio la zona vacía, la medición se descartó y la
-altura validada se mantuvo en el valor anterior. Sin esa columna, el dato
-quedaría registrado como un cúmulo que nunca existió.
+Las tres filas son del registro real de `testing/datos/registro.csv`. La
+primera es anterior a cualquier consulta: hay una lectura de 4 mm pero nada
+validado. En la segunda la cámara confirma y la altura pasa a validada. En la
+tercera la lectura baja 4 mm, menos que la banda de ruido (`RUIDO_MM`, 20 mm),
+así que la altura validada se conserva: el sistema no persigue oscilaciones
+del sensor.
+
+La columna `validacion` es la que permite auditar el caso que motivó el
+diseño: una medición que la cámara objeta queda registrada como `objetada`, en
+vez de quedar como un cúmulo que nunca existió.
+
+Sobre el volumen de esas filas. `volumen_cm3` es una columna derivada: se calcula al vuelo con `AREA_ZONA_CM2`, que valía 176,7 cm² cuando se grabó este registro y hoy vale 225,0 cm². Por eso 4 mm aparecen como 42,4 cm³ y no como los 54,0 que daría la constante actual. La medición en sí —`distancia_mm` y las dos alturas— no depende de esa constante y sigue siendo válida; lo que cambia es la estimación que se deriva de ella.
 
 El registro es **continuo**: una fila cada 5 segundos, haya o no material nuevo.
 Eso permite reconstruir la curva de acumulación completa después, y auditar
@@ -513,13 +520,13 @@ por Telegram:
 RECOLECCION REQUERIDA
 
 Zona de observacion 1
-Nivel: 112 mm (75% de capacidad)
-Ritmo: 48 mm/h
-Volumen estimado: 151 cm3
-Material predominante: carton (0.81)
-Confirmado visualmente por camara
+Nivel: 112 mm (74% de capacidad)
+Ritmo: 48 mm/h (ventana 36 min)
+Volumen estimado: 1512 cm3
+Material predominante: residuo (0.97)
+Presencia de material confirmada por camara
 
-04-11-2026 14:32
+20-11-2026 16:25
 ```
 
 Y otro cuando el nivel vuelve a la normalidad, para cerrar el ciclo.

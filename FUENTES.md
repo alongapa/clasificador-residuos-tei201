@@ -24,6 +24,11 @@ usadas en el proyecto, incluido el uso de inteligencia artificial.
 | `esp32` (core Arduino) | 3.3.12 | Soporte de placa, GPIO, `HardwareSerial` para el enlace UART | https://github.com/espressif/arduino-esp32 |
 | `SD` | incluida en el core | Montaje y escritura de la microSD por SPI en el DevKit | https://github.com/espressif/arduino-esp32/tree/master/libraries/SD |
 | `SPI` | incluida en el core | Bus SPI hacia el módulo microSD | https://github.com/espressif/arduino-esp32/tree/master/libraries/SPI |
+| `WiFi` | incluida en el core | Conexión al hotspot y modo punto de acceso de respaldo | https://github.com/espressif/arduino-esp32/tree/master/libraries/WiFi |
+| `WebServer` | incluida en el core | Servidor HTTP embebido: sirve el dashboard y las rutas `/datos` y `/calibrar` | https://github.com/espressif/arduino-esp32/tree/master/libraries/WebServer |
+| `WiFiClientSecure` | incluida en el core | Capa TLS para hablar con la API de Telegram; en el core 3.x es la cabecera de compatibilidad de `NetworkClientSecure` | https://github.com/espressif/arduino-esp32/tree/master/libraries |
+| `HTTPClient` | incluida en el core | Peticiones HTTPS `POST` a `api.telegram.org` para enviar los avisos | https://github.com/espressif/arduino-esp32/tree/master/libraries/HTTPClient |
+| `time.h` + SNTP | incluida en el core | Sincronización horaria por NTP, para la marca temporal real de cada fila del CSV | https://github.com/espressif/arduino-esp32 |
 | `esp_camera` | incluida en el core | Inicialización y captura del sensor OV2640 | https://github.com/espressif/esp32-camera |
 | `gapa-project-1_inferencing` | exportada 2026-10 | SDK de Edge Impulse con el modelo entrenado por el equipo; ejecuta la inferencia en la placa | Generada en https://edgeimpulse.com |
 | `edge-impulse-sdk/dsp/image` | dentro de la anterior | Recorte y reescalado de la imagen a 96×96 antes de la inferencia | https://github.com/edgeimpulse/inferencing-sdk-cpp |
@@ -107,19 +112,22 @@ incluida la corrección de varios errores del código generado.
 
 **Comprensión del código:**
 
-- `medir()` toma cinco lecturas del ultrasónico separadas 30 ms, las ordena y
-  devuelve la del medio. Se usa mediana y no promedio porque el HC-SR04 produce
-  lecturas sueltas muy desviadas cuando el eco rebota mal; un promedio las
-  incorpora al resultado, la mediana las descarta sin suavizar los cambios
-  reales de distancia.
-- `pedirClasificacion()` vacía el buffer de entrada antes de esperar, para no
-  leer un resultado viejo de una detección anterior. Valida que la clase
-  recibida sea una de las cuatro conocidas: si llega una línea cortada a la
-  mitad —posible si la cámara estaba transmitiendo justo cuando se vació el
-  buffer— el texto parcial no coincide con ninguna clase y se descarta.
-- La variable `armado` evita que un objeto quieto dispare el ciclo en bucle.
-  Después de una detección el sistema queda desarmado y solo vuelve a armarse
-  cuando la distancia supera `REARME_MM`, es decir cuando el objeto se retiró.
+- `medirDistancia()` toma cinco lecturas del ultrasónico separadas 30 ms,
+  descarta las que caen fuera de rango, ordena las válidas y devuelve la del
+  medio. Se usa mediana y no promedio porque el HC-SR04 produce lecturas
+  sueltas muy desviadas cuando el eco rebota mal; un promedio las incorpora al
+  resultado, la mediana las descarta sin suavizar los cambios reales de
+  distancia. Entre lectura y lectura llama a `servidor.handleClient()`, para
+  que el dashboard no se congele durante los 150 ms que toma la medición.
+- `pedirCaracterizacion()` vacía el buffer de entrada antes de esperar, para no
+  leer un resultado viejo. La cámara responde una línea `clase,confianza`; si
+  llega cortada a la mitad —posible si estaba transmitiendo justo cuando se
+  vació el buffer— la clase parcial no coincide con ninguna de las tres
+  conocidas y se descarta.
+- El ciclo no se dispara en bucle con un objeto quieto porque la cámara solo se
+  consulta cuando la altura **sube** más de `CONFIRMA_SUBIDA_MM`, o cuando pasan
+  `REVALIDA_MS` desde la última confirmación. Un nivel estable no genera
+  consultas nuevas; una bajada no necesita confirmación.
 - El pulsador se lee con `INPUT_PULLUP`: el pin queda en alto por la resistencia
   interna del ESP32 y baja a cero al presionar, lo que ahorra una resistencia
   externa. Se distingue toque corto de largo midiendo cuánto tiempo permanece en
@@ -352,10 +360,10 @@ dentro del gabinete.
 
 **La calibración remota y por qué está hecha así:**
 
-- Con el equipo montado dentro del gabinete cerrado **no hay acceso físico ni
-  al pulsador ni al pin D4**, así que la ruta `/calibrar` es la única vía para
-  fijar el cero en terreno. Dejó de ser una comodidad y pasó a ser un
-  requisito.
+- Con el equipo montado **el pulsador no es accionable** —la lengüeta impresa
+  de `Lid_B` no transmite la pulsación— **y tampoco hay acceso al pin D4**, así
+  que la ruta `/calibrar` es la única vía para fijar el cero en terreno. Dejó de
+  ser una comodidad y pasó a ser un requisito.
 - **La ruta no ejecuta la calibración: levanta una bandera que atiende
   `loop()`.** Esto no es un rodeo, es necesario. `calibrarCero()` llama a
   `servidor.handleClient()` dentro de su bucle de lectura, y ejecutarla desde
@@ -413,10 +421,12 @@ dio formato.
 Para dejar claro qué no vino de ninguna fuente externa:
 
 - La **arquitectura de dos placas** con la inferencia separada del control.
-- La **regla de fusión**: exigir presencia confirmada *y* confianza sobre umbral,
-  y reportar *no concluyente* en vez de adivinar cuando solo se cumple una.
-- Las **cuatro clases** del modelo, y la decisión de **eliminar la clase vidrio**
-  tras comprobar que a 96×96 píxeles no se distingue del plástico transparente.
+- La **validación invertida**: la medición del ultrasónico cuenta por defecto y
+  la cámara solo puede *objetar*, y solo por encima de `CONFIANZA_MIN`. Un
+  componente probabilístico nunca bloquea al componente físico confiable.
+- Las **tres clases** del modelo (`residuo`, `otro`, `vacio`), tras comprobar
+  que a 96×96 píxeles los materiales no se distinguen entre sí de forma fiable
+  y que el Avance 1 nunca preguntó de qué material era la basura.
 - La **alimentación del HC-SR04 a 3,3 V** en lugar de 5 V, lo que permite
   conectar el ECHO directo al GPIO sin divisor de tensión, a costa de reducir el
   alcance de unos 4 m a cerca de 1 m — suficiente para medir a 10–20 cm.

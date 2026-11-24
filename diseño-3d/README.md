@@ -18,6 +18,12 @@ encapsulado, que es lo que distingue un gemelo 3D de una caja vacía.
 | `renders/detalle-pared-frontal.png` | Cámara y HC-SR04 a la misma altura, apuntando al mismo punto |
 | `stl/` | Las piezas listas para imprimir |
 
+La cartela de los planos cita el archivo fuente como
+`Gabinete_ESP32_Entrega2_ensamble.f3d`, que es el nombre con que se exportó
+desde Fusion. En este repositorio ese mismo archivo está como
+`encapsulado.f3d`: es el mismo ensamble, renombrado para la estructura de
+carpetas.
+
 ## Verificación
 
 - **Timeline:** 324 items, sin errores ni advertencias
