@@ -348,10 +348,12 @@ mide la zona vacía, fija ese valor como cero y reinicia la sesión. Hasta que s
 calibre, el LED queda azul fijo y el dashboard avisa que las alturas no son
 confiables.
 
-Con el gabinete abierto existe la misma función por hardware: un toque largo del
-pulsador calibra y un toque corto pide una caracterización manual a la cámara.
-Cerrado el equipo no hay acceso físico al pulsador, y por eso la vía del
-dashboard es la que vale en terreno (ver *Calibración remota*).
+El firmware conserva la misma función por hardware: un toque largo del pulsador
+calibra y un toque corto pide una caracterización manual a la cámara. En el
+prototipo armado esa vía **no es utilizable**: la lengüeta en voladizo de `Lid_B`
+no transmite la pulsación al táctil con el gabinete cerrado. Por eso la
+calibración se trasladó al dashboard (ver *Calibración remota*), que es la vía
+que vale en terreno.
 
 ### Verificación
 
@@ -546,10 +548,11 @@ al pie del dashboard.
 **1. Crear el bot**
 
 En Telegram, buscar **@BotFather** y enviarle `/newbot`. Pide un nombre y un
-usuario, y devuelve un token con esta forma:
+usuario, y devuelve un token con esta forma (el de abajo es un marcador de
+posición, no un token real):
 
 ```
-7891234567:AAEhBOweik6ad9r_RrTSaFDpbkPH3SmAbCd
+000000000:AAAA-PEGA-AQUI-TU-TOKEN-NO-LO-SUBAS
 ```
 
 **2. Crear el grupo de avisos**
@@ -567,16 +570,20 @@ https://api.telegram.org/bot<TOKEN>/getUpdates
 ```
 
 Reemplazando `<TOKEN>` por el del paso 1. En la respuesta buscar `"chat"` y
-dentro de él `"id"`. Para un grupo es un número negativo, tipo `-1001234567890`.
+dentro de él `"id"`. Para un grupo es un número negativo, tipo `-100XXXXXXXXXX`.
 
 **4. Ponerlos en el firmware**
 
 Arriba de `clasificador_devkit.ino`:
 
 ```cpp
-const char* TG_TOKEN = "7891234567:AAEhBOweik6ad9r_RrTSaFDpbkPH3SmAbCd";
-const char* TG_CHAT  = "-1001234567890";
+const char* TG_TOKEN = "000000000:AAAA-PEGA-AQUI-TU-TOKEN-NO-LO-SUBAS";
+const char* TG_CHAT  = "-100XXXXXXXXXX";
 ```
+
+**El token da control total sobre el bot: nunca lo subas al repositorio.** Las
+cuatro constantes van vacías en la copia versionada y se rellenan solo en la
+copia local. Si alguna vez se filtra, `/revoke` en @BotFather emite una nueva.
 
 Y también configurar la red con salida a internet:
 

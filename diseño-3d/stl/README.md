@@ -9,7 +9,7 @@ una por costura, al 100 % de relleno. Las demás van una vez.
 | `Base_B.stl` | Zona central, protoboard, canal de cable |
 | `Base_C.stl` | DevKit elevado, ranura USB-C, módulo microSD |
 | `Lid_A.stl` | Tapa con ventana difusora del LED |
-| `Lid_B.stl` | Tapa con botón de membrana |
+| `Lid_B.stl` | Tapa con botón de membrana — la lengüeta impresa no transmite la pulsación (ver `../README.md`) |
 | `Lid_C.stl` | Tapa lisa, mitad superior de la ranura USB-C |
 | `Cuna_LED_A.stl` | Soporte del LED, se pega al interior de `Lid_A` |
 | `Cuna_Pulsador_B.stl` | Soporte del pulsador, se pega al interior de `Lid_B` |

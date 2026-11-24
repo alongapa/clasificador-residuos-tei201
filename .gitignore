@@ -1,0 +1,14 @@
+# Arduino
+build/
+*.hex
+*.elf
+*.bin
+
+# Fusion 360
+*.f3d.bak
+*.f3z.bak
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini

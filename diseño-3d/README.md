@@ -101,7 +101,7 @@ comportamiento diseñado. Nada del modelo cambia.
 | Base_B | Zona central, protoboard, canal de cable |
 | Base_C | DevKit elevado sobre postes, ranura USB-C, módulo microSD |
 | Lid_A | Ventana difusora del LED |
-| Lid_B | Botón de membrana con lengüeta en voladizo |
+| Lid_B | Botón de membrana con lengüeta en voladizo — impresa, la lengüeta resultó demasiado rígida y no acciona el táctil |
 | Lid_C | Lisa, conserva la mitad superior de la ranura USB-C |
 | Cuna_Pulsador_B | Se pega al interior de Lid_B |
 | Cuna_LED_A | Se pega al interior de Lid_A |
